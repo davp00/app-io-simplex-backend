@@ -13,7 +13,12 @@ export interface SimplexVar {
 
 export interface SimplexReducer {
     value: number;
-    multiply: number;
+    multiply?: number;
+}
+
+export interface SimplexInOut {
+    in: number;
+    out: number;
 }
 
 let cl = readline.createInterface( process.stdin, process.stdout );
@@ -34,7 +39,7 @@ export default class SimplexMethod {
   cb: number[];
 
   matrix: SimplexVar[];
-  
+
   restrictions: SimplexRestriction[];
 
   constructor(cj: number[], restrictions: SimplexRestriction[], private FO: string) {
@@ -80,70 +85,114 @@ export default class SimplexMethod {
       }
   }
 
-  public async Maximise()
+  public Maximise()
   {
       let result:any[] = [];
       this.matrix = this.getMatrix();
       this.init_solution_vars();
 
-      this.calculate();
+      do{
+        this.calculate();
 
-      result.push({matrix: [...this.matrix], zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb]});
+        let v = this.calculate_in_out_max();
+        result.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v});
 
-      while (!this.is_sol_max())
-      {
-          let v = this.calculate_in_out_max();
+        this.doOne(v);
 
-          let divide = this.matrix[v.v_in].values[v.v_out];
+        let reducers = this.calculate_reducers(v.in, v.out);
 
-          this.matrix.forEach((element, i ) =>
-          {
-            element.values[v.v_out] = element.values[v.v_out] / divide;
-          });
+        this.doZero(reducers, v);
 
-          let reducers = this.calculate_reducers(v.v_in, v.v_out);
-
-          this.matrix.forEach((element, y) =>
-          {
-            element.values.forEach((value, x) =>
-            {
-              if(x === v.v_out) return;
-              let r = reducers[x];
-              this.matrix[y].values[x] = this.matrix[y].values[x] + (r.value*this.matrix[y].values[v.v_out]*r.multiply)
-            });
-          });
-          this.cb[v.v_out] = this.cj[v.v_in-1];
-
-
-
-
-          this.calculate();
-          result.push({matrix: [...this.matrix], zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb]});
-          /*console.table(this.matrix);
-          console.log(this.zj);
-          console.log(this.cj_zj);
-          console.log(v);
-          console.log(this.vs);
-          await question('Next ? ');*/
-          /*console.log(this.cj);
-          console.log(this.cb);
-          console.log(this.zj);
-          console.log(this.cj_zj);
-          console.log(this.vs);*/
-      }
+        this.cb[v.out] = this.cj[v.in - 1];
+      }while (! this.is_sol_max());
 
       result.forEach((element) =>
       {
           console.table(element.matrix);
+          console.log("IN - OUT: ", element.in_out);
           console.log("V Solucion: ", element.vs);
           console.log("ZJ: ", element.zj);
           console.log("CJ-ZJ: ", element.cj_zj);
+          console.log("                          \n");
       });
   }
 
   public Minimise()
   {
+      let result:any[] = [];
+      this.matrix = this.getMatrix();
+      this.init_solution_vars();
 
+      do {
+        this.calculate();
+
+        let v = this.calculate_in_out_min();
+        result.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v});
+
+        this.doOne(v);
+
+        let reducers = this.calculate_reducers(v.in, v.out);
+
+        this.doZero(reducers, v);
+
+        this.cb[v.out] = this.cj[v.in - 1];
+        this.vs[v.out] = this.matrix[v.in].name;
+      }while (!this.is_sol_min());
+
+      result.forEach((element) =>
+      {
+        console.table(element.matrix);
+        console.log("IN - OUT: ", element.in_out);
+        console.log("V Solucion: ", element.vs);
+        console.log("ZJ: ", element.zj);
+        console.log("CJ-ZJ: ", element.cj_zj);
+        console.log("                          \n");
+      });
+
+      const solution = this.getSolution();
+      for (let va in solution)
+      {
+          console.log(va, ':', solution[va]);
+      }
+  }
+
+  private getSolution()
+  {
+      let solution = {z: this.zj[0], xn: Array(this.cj.length - this.restrictions.length).fill(0)};
+
+      this.vs.forEach((element, i) =>
+      {
+          if(element[0] !== 'x')
+            return;
+          let pos = Number(element[1]) - 1;
+
+          solution.xn[pos] = this.matrix[0].values[i];
+      });
+
+      return solution;
+  }
+
+  private doZero(reducers: SimplexReducer[], v: SimplexInOut)
+  {
+      this.matrix.forEach((element, y) =>
+      {
+          element.values.forEach((value, x) =>
+          {
+            if(x === v.out) return;
+            let r = reducers[x];
+            this.matrix[y].values[x] = this.matrix[y].values[x] + (r.value*this.matrix[y].values[v.out])
+          });
+      });
+  }
+
+  private doOne(v: SimplexInOut)
+  {
+      let divide = this.matrix[ v.in ].values[ v.out ];
+
+      this.matrix.forEach((element, i ) =>
+      {
+        element.values[ v.out ] = element.values[ v.out ] / divide;
+      });
   }
 
   private getMatrix(): SimplexVar[]
@@ -192,7 +241,7 @@ export default class SimplexMethod {
   }
 
 
-  private calculate_in_out_max():any
+  private calculate_in_out_max(): SimplexInOut
   {
       let max:number = 0,min:number = undefined, v_in:number = 0, v_out: number = 0;
 
@@ -223,7 +272,43 @@ export default class SimplexMethod {
       });
 
       this.vs[v_out] = this.matrix[v_in].name;
-      return { v_out, v_in };
+
+    return { out: v_out, in: v_in };
+  }
+
+  private calculate_in_out_min(): SimplexInOut
+  {
+      let max:number = 0,min:number = undefined, v_in:number = 0, v_out: number = 33;
+
+      this.cj_zj.forEach((element, i) =>
+      {
+          if(!min) min = element;
+
+          if (element <= min)
+          {
+            min  = element;
+            v_in = i + 1;
+          }
+      });
+      min = undefined;
+      this.matrix[0].values.forEach((b, i) =>
+      {
+          let b_a = 0, a = this.matrix[v_in].values[i];
+
+          if(a > 0)
+          {
+            b_a = b / a;
+            if (!min) min = b_a;
+          }
+
+          if(a > 0 && b_a <= min)
+          {
+            min = b_a;
+            v_out = i;
+          }
+      });
+
+      return { out: v_out, in: v_in };
   }
 
 
@@ -237,8 +322,8 @@ export default class SimplexMethod {
             simplex_reducers.push({value: 1, multiply: 1});
             return;
           }
-          let multiply = element >= 0 ? -1: 1;
-           simplex_reducers.push({value: Math.abs(element), multiply})
+          let multiply = -1;
+           simplex_reducers.push({value: element*multiply, multiply})
       });
 
       return simplex_reducers;
@@ -265,9 +350,23 @@ export default class SimplexMethod {
       return true;
   }
 
+  private is_sol_min()
+  {
+    for (let element of this.cj_zj)
+    {
+      if(element < 0)
+        return false;
+    }
+    return true;
+  }
 
   private init_solution_vars()
   {
       this.vs = this.restrictions.map((element, i ) => `s${i+1}` );
+  }
+
+  private clone(arr: any[]): any[]
+  {
+      return JSON.parse(JSON.stringify(arr));
   }
 }
