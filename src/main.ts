@@ -7,15 +7,15 @@ async function bootstrap() {
   await app.listen(3000);
 }
 
-const cj: number[] = [-5, -4 ];
+const cj: number[] = [ 4, 1 ];
 
 const restrictions: SimplexRestriction[] = [
-  { x_n: [2, 2], symbol: '<=', equal: 14 },
-  { x_n: [6, 3], symbol: '<=', equal: 36 },
-  { x_n: [5, 10], symbol: '<=', equal: 60 },
+  { x_n: [3, 1], symbol: '>=', equal: 3 },
+  { x_n: [4, 3], symbol: '>=', equal: 6 },
+  { x_n: [1, 2], symbol: '<=', equal: 4 },
 ];
 
-const FO = 'min';
+const FO = 'max';
 
 const simplex = new SimplexMethod(cj, restrictions, FO);
 

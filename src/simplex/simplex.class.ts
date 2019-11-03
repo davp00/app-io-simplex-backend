@@ -75,19 +75,40 @@ export default class SimplexMethod {
   public result()
   {
       const method_type = this.getMethod();
+
       switch (method_type) {
-        case 1:
-          this.Maximise();
-          break;
-        case 2:
-          this.Minimise();
-          break;
+          case 1:
+            this.Maximise();
+            break;
+          case 2:
+            this.Minimise();
+            break;
+          case 3:
+            this.transform();
+            this.Maximise();
+            break;
       }
+  }
+
+  public transform()
+  {
+      this.restrictions.forEach((element, i) =>
+      {
+          if(element.symbol === '>=')
+          {
+              this.restrictions[i].x_n = element.x_n.map((value, i) =>
+              {
+                  return value !== 0 ? value * -1 : value;
+              });
+              this.restrictions[i].equal *= -1;
+              this.restrictions[i].symbol = '<=';
+          }
+      });
   }
 
   public Maximise()
   {
-      let result:any[] = [];
+      let process:any[] = [];
       this.matrix = this.getMatrix();
       this.init_solution_vars();
 
@@ -95,7 +116,12 @@ export default class SimplexMethod {
         this.calculate();
 
         let v = this.calculate_in_out_max();
-        result.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v});
+
+        process.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v});
+
+        if( ! v )
+          break;
+
 
         this.doOne(v);
 
@@ -104,22 +130,35 @@ export default class SimplexMethod {
         this.doZero(reducers, v);
 
         this.cb[v.out] = this.cj[v.in - 1];
+
+
+        this.vs[v.out] = this.matrix[v.in].name;
+
       }while (! this.is_sol_max());
 
-      result.forEach((element) =>
+     process.forEach((element) =>
       {
-          console.table(element.matrix);
-          console.log("IN - OUT: ", element.in_out);
-          console.log("V Solucion: ", element.vs);
-          console.log("ZJ: ", element.zj);
-          console.log("CJ-ZJ: ", element.cj_zj);
-          console.log("                          \n");
+        console.table(element.matrix);
+        console.log("IN - OUT: ", element.in_out);
+        console.log("V Solucion: ", element.vs);
+        console.log("ZJ: ", element.zj);
+        console.log("CJ-ZJ: ", element.cj_zj);
+        console.log("                          \n");
       });
+
+      const solution = this.getSolution();
+
+      for (let va in solution)
+      {
+        console.log(va, ':', solution[va]);
+      }
+
+      return { process, solution };
   }
 
   public Minimise()
   {
-      let result:any[] = [];
+      let process:any[] = [];
       this.matrix = this.getMatrix();
       this.init_solution_vars();
 
@@ -127,7 +166,7 @@ export default class SimplexMethod {
         this.calculate();
 
         let v = this.calculate_in_out_min();
-        result.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v});
+        process.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v});
 
         this.doOne(v);
 
@@ -139,7 +178,7 @@ export default class SimplexMethod {
         this.vs[v.out] = this.matrix[v.in].name;
       }while (!this.is_sol_min());
 
-      result.forEach((element) =>
+      process.forEach((element) =>
       {
         console.table(element.matrix);
         console.log("IN - OUT: ", element.in_out);
@@ -150,10 +189,13 @@ export default class SimplexMethod {
       });
 
       const solution = this.getSolution();
+
       for (let va in solution)
       {
           console.log(va, ':', solution[va]);
       }
+
+      return { process, solution };
   }
 
   private getSolution()
@@ -165,7 +207,6 @@ export default class SimplexMethod {
           if(element[0] !== 'x')
             return;
           let pos = Number(element[1]) - 1;
-
           solution.xn[pos] = this.matrix[0].values[i];
       });
 
@@ -243,7 +284,7 @@ export default class SimplexMethod {
 
   private calculate_in_out_max(): SimplexInOut
   {
-      let max:number = 0,min:number = undefined, v_in:number = 0, v_out: number = 0;
+      let max:number = 0,min:number = undefined, v_in:number = -1, v_out: number = 0;
 
       this.cj_zj.forEach((element, i) =>
       {
@@ -253,6 +294,10 @@ export default class SimplexMethod {
              v_in = i + 1;
           }
       });
+
+
+      if(v_in === -1)
+        return undefined;
 
       this.matrix[0].values.forEach((b, i) =>
       {
@@ -270,8 +315,6 @@ export default class SimplexMethod {
               v_out = i;
           }
       });
-
-      this.vs[v_out] = this.matrix[v_in].name;
 
     return { out: v_out, in: v_in };
   }
