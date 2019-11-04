@@ -7,27 +7,37 @@ async function bootstrap() {
   await app.listen(3000);
 }
 
-const cj: number[] = [ 4, 1 ];
+/*const cj: number[] = [ 2,3 ];
 
 const restrictions: SimplexRestriction[] = [
-  { x_n: [3, 1], symbol: '>=', equal: 3 },
-  { x_n: [4, 3], symbol: '>=', equal: 6 },
-  { x_n: [1, 2], symbol: '<=', equal: 4 },
+  { x_n: [1/2, 1/4 ], symbol: '<=', equal: 4 },
+  { x_n: [1, 3], symbol: '>=', equal: 36 },
+  { x_n: [1, 2], symbol: '=', equal: 10 },
+];
+
+const FO = 'max';*/
+
+/*const cj: number[] = [ 5,6 ];
+
+const restrictions: SimplexRestriction[] = [
+  { x_n: [-2, 3 ], symbol: '=', equal: 3 },
+  { x_n: [1, 2], symbol: '<=', equal: 5 },
+  { x_n: [6, 7], symbol: '<=', equal: 3 },
+];
+
+const FO = 'max';
+
+const cj: number[] = [ 2, 3, -5 ];
+
+const restrictions: SimplexRestriction[] = [
+  { x_n: [1, 1, 1], symbol: '=', equal: 7 },
+  { x_n: [2, -5, 1], symbol: '>=', equal: 10 },
 ];
 
 const FO = 'max';
 
 const simplex = new SimplexMethod(cj, restrictions, FO);
 
-simplex.result();
-/*
-* const cj: number[] = [5, 4,3 ];
+simplex.result();*/
 
-const restrictions: SimplexRestriction[] = [
-  { x_n: [2, 3, 1], symbol: '<=', equal: 5 },
-  { x_n: [4, 1, 2], symbol: '<=', equal: 11 },
-  { x_n: [3, 4, 2], symbol: '<=', equal: 8 },
-];
-
-const FO = 'max';*/
-//bootstrap();
+bootstrap();
