@@ -6,6 +6,12 @@ export interface SimplexRestriction {
   equal: number;
 }
 
+export interface SimplexDataApi {
+  cj: number[];
+  restrictions: SimplexRestriction[];
+  FO: string;
+}
+
 export interface SimplexVar {
   name: string;
   values: number[];
@@ -38,26 +44,28 @@ export default class SimplexMethod {
   cj_zj: number[];
   cb: number[];
   num_vars: number;
+  FO: string;
 
   matrix: SimplexVar[];
 
   restrictions: SimplexRestriction[];
 
-  constructor(cj: number[], restrictions: SimplexRestriction[], private FO: string) {
-    this.restrictions = restrictions;
+  constructor(data:SimplexDataApi) {
+    this.restrictions = data.restrictions;
     this.transformEquals();
 
-    let array_default       = Array(restrictions.length).fill(0);
-    let array_default_vars  = Array(cj.length).fill(0);
+    let array_default       = Array(data.restrictions.length).fill(0);
+    let array_default_vars  = Array(data.cj.length).fill(0);
 
-    this.cj = [...cj, ...array_default];
+    this.cj = [...data.cj, ...array_default];
 
     this.cb = array_default;
 
     this.zj     = array_default.concat(array_default_vars, [0]);
     this.cj_zj  = Array(this.cj.length).fill(0);
 
-    this.num_vars = cj.length;
+    this.num_vars = data.cj.length;
+    this.FO = data.FO;
   }
 
   public getMethod()
@@ -81,23 +89,25 @@ export default class SimplexMethod {
   public result()
   {
       const method_type = this.getMethod();
-
+      let r;
       switch (method_type) {
           case 1:
-            this.Maximise();
+            r = this.Maximise();
             break;
           case 2:
-            this.Minimise();
+            r = this.Minimise();
             break;
           case 3:
             this.transformGreaterOrEqual();
-            this.Maximise();
+            r = this.Maximise();
             break;
           case 4:
             this.transformGreaterOrEqual();
-            this.Minimise();
+            r = this.Minimise();
             break;
       }
+
+      return r;
   }
 
 
@@ -173,6 +183,8 @@ export default class SimplexMethod {
       {
           console.log("El problema no tiene solución");
       }
+
+      return { process, solution };
   }
 
   public Minimise()

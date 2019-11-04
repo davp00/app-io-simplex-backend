@@ -1,15 +1,15 @@
-import { Controller, Post } from '@nestjs/common';
-import SimplexMethod, { SimplexRestriction } from './simplex.class';
+import { Body, Controller, Post } from '@nestjs/common';
+import SimplexMethod, { SimplexDataApi } from './simplex.class';
 
-interface SimplexData {
 
-}
 
 @Controller('simplex')
 export class SimplexController {
 
   @Post()
-  simplexMethod() {
-      return 'Hola desde el simplex';
+  simplexMethod(@Body() data: SimplexDataApi) {
+      const simplex = new SimplexMethod(data);
+
+      return simplex.result();
   }
 }
