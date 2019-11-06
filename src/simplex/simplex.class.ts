@@ -174,7 +174,7 @@ export default class SimplexMethod {
       }while (! this.is_sol_max());
 
       const solution = this.getSolution();
-      this.printResult(process, solution);
+      // this.printResult(process, solution);
 
       if (this.solutionIsValid(solution))
       {

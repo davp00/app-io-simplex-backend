@@ -4,6 +4,7 @@ import SimplexMethod, { SimplexRestriction } from './simplex/simplex.class';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   await app.listen(3000);
 }
 
