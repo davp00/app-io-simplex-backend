@@ -35,10 +35,19 @@ const restrictions: SimplexRestriction[] = [
   { x_n: [2, -5, 1], symbol: '>=', equal: 10 },
 ];
 
-const FO = 'max';
+const FO = 'max';*/
+/*const cj: number[] = [ 6, 4, 2 ];
 
-const simplex = new SimplexMethod(cj, restrictions, FO);
+const restrictions: SimplexRestriction[] = [
+  { x_n: [6, 2, 6 ], symbol: '>=', equal: 6 },
+  { x_n: [6, 4, 0], symbol: '=', equal: 12 },
+  { x_n: [2, -2, 0], symbol: '<=', equal: 2 },
+];
 
-simplex.result();*/
+const FO = 'min';
 
+const simplex = new SimplexMethod({cj, restrictions, FO});
+
+simplex.result();
+*/
 bootstrap();
