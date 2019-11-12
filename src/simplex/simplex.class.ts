@@ -192,9 +192,12 @@ export default class SimplexMethod {
   public Minimise()
   {
       let process:any[] = [];
-      this.cj = this.cj.map((element) => element * -1);
+      //this.cj = this.cj.map((element) => element * -1);
       this.matrix = this.getMatrix();
       this.init_solution_vars();
+
+      /*this.cb[2] = -1;
+      this.cb[3] = -1;*/
 
       do {
         this.calculate();
@@ -219,7 +222,7 @@ export default class SimplexMethod {
           break;
       }while (!this.is_sol_min());
 
-      this.zj = this.zj.map((element) => element * - 1);
+      // this.zj = this.zj.map((element) => element * - 1);
 
       const solution = this.getSolution();
       // this.printResult(process, solution);
@@ -305,7 +308,7 @@ export default class SimplexMethod {
 
           values[i] = 1;
 
-          matrix.push({name: `s${Number(i) + 1}`, values})
+          matrix.push({name: `s${Number(i) + 1}`, values});
       }
 
       return matrix;
