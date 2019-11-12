@@ -28,8 +28,8 @@ const restrictions: SimplexRestriction[] = [
 ];
 
 const FO = 'max';
-
-const cj: number[] = [ 2, 3, -5 ];
+*/
+/*const cj: number[] = [ 2, 3, -5 ];
 
 const restrictions: SimplexRestriction[] = [
   { x_n: [1, 1, 1], symbol: '=', equal: 7 },
@@ -60,7 +60,7 @@ const restrictions: SimplexRestriction[] = [
 
 const FO = 'min';*/
 
-const cj: number[] = [2, 3];
+/*const cj: number[] = [2, 3];
 
 const restrictions: SimplexRestriction[] = [
   { x_n: [0.5,0.25], symbol: '<=', equal: 4 },
@@ -68,9 +68,20 @@ const restrictions: SimplexRestriction[] = [
   { x_n: [1,1], symbol: '=', equal: 10 },
 ];
 
-const FO = 'min';
+const FO = 'min';*/
 
-let simplex: Simplex2Phases = new Simplex2Phases({cj, restrictions, FO});
+/*const cj: number[] = [5 , 8];
 
-simplex.result();
-//bootstrap();
+const restrictions: SimplexRestriction[] = [
+  { x_n: [6,5], symbol: '<=', equal: 30 },
+  { x_n: [0,1], symbol: '>=', equal: 1 },
+  { x_n: [-1,1], symbol: '<=', equal: 3 },
+];
+
+const FO = 'max';*/
+
+
+/*let simplex: Simplex2Phases = new Simplex2Phases({cj, restrictions, FO});
+
+simplex.result();*/
+bootstrap();

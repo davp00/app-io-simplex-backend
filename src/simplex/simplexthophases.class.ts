@@ -24,11 +24,56 @@ export default class Simplex2Phases {
     {
         if (this.data.FO === 'max')
         {
-
+            return this.Maximise();
         }else if (this.data.FO === 'min')
         {
             return this.Minimise();
         }
+    }
+
+    private Maximise()
+    {
+        let process:any[] = [];
+
+        let phase = 1;
+
+        for (let i = 0 ; i < 2 ; i++)
+        {
+            do {
+                this.calculate();
+                let v = i === 0 ? this.calculate_in_out_min() : this.calculate_in_out_max();
+
+                process.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v, phase});
+
+                if( ! v )
+                  break;
+
+                this.doOne(v);
+
+                let reducers = this.calculate_reducers(v.in, v.out);
+
+                this.doZero(reducers, v);
+
+                this.cb[v.out] = this.cj[v.in - 1];
+                this.vs[v.out] = this.matrix[v.in].name;
+
+                if (phase)
+                  phase = undefined;
+
+            }while (!this.is_sol_max());
+
+            phase = 2;
+
+            if (i === 0)
+            {
+                this.transformToPhase2();
+            }
+          }
+          const solution = this.getSolution();
+
+        //this.printResult(process, solution);
+
+          return { process, solution };
     }
 
     private Minimise()
@@ -64,24 +109,45 @@ export default class Simplex2Phases {
 
             phase = 2;
 
-            this.matrix = this.matrix.filter((element, i) => {
-              if (element.name[0] !== 'a')
-              {
-                return element;
-              }
-            });
-
-            this.cj = this.data.cj.concat(Array(this.cb.length).fill(0));
-
-            this.vs.forEach((element, i) =>
+            if (i === 0)
             {
-              this.cb[i] = this.cj[this.getPosition(element)];
-            });
+                this.transformToPhase2();
+            }
         }
         const solution = this.getSolution();
-        this.printResult(process, solution);
+        //this.printResult(process, solution);
 
         return { process, solution };
+    }
+
+
+    private transformToPhase2()
+    {
+        this.matrix = this.matrix.filter((element, i) => {
+          if (element.name[0] !== 'a')
+          {
+            return element;
+          }
+        });
+
+        let cont_s = 0;
+
+        this.matrix.forEach((element) => {
+          if (element.name[0] === 's')
+            cont_s++;
+        });
+
+        this.cj = this.data.cj.concat(Array(cont_s).fill(0));
+
+
+
+        this.vs.forEach((element, i) =>
+        {
+          this.cb[i] = this.cj[this.getPosition(element)];
+        });
+
+        this.zj = Array(this.matrix.length).fill(0);
+        this.cj_zj = Array(this.cj.length).fill(0);
     }
 
 
@@ -106,8 +172,10 @@ export default class Simplex2Phases {
                       break;
                 }
                 data.restrictions[i] = r;
-
-                console.log(data.restrictions[i]);
+            }else if (r.equal === 0 && r.symbol === '>=')
+            {
+                r.x_n = r.x_n.map((element) => element * -1);
+                r.symbol = '<=';
             }
         }
 
@@ -202,8 +270,50 @@ export default class Simplex2Phases {
     }
 
 
+    private calculate_in_out_max(): SimplexInOut
+    {
+        let max:number = 0,min:number = undefined, v_in:number = -1, v_out: number = 0;
+
+        this.cj_zj.forEach((element, i) =>
+        {
+            if (element > max)
+            {
+              max  = element;
+              v_in = i + 1;
+            }
+        });
+
+
+        if(v_in === -1)
+          return undefined;
+
+        this.matrix[0].values.forEach((b, i) =>
+        {
+            let b_a = 0, a = this.matrix[v_in].values[i];
+
+            if(a > 0)
+            {
+              b_a = b / a;
+              if (!min) min = b_a;
+            }
+
+            if(a > 0 && b_a <= min)
+            {
+              min = b_a;
+              v_out = i;
+            }
+        });
+
+
+        return { out: v_out, in: v_in };
+    }
+
+
     private calculate_in_out_min(): SimplexInOut
     {
+        if (this.data.FO === 'max' && this.is_sol_max())
+          return undefined;
+
         let max:number = 0,min:number = undefined, v_in:number = 0, v_out: number = 33;
 
         this.cj_zj.forEach((element, i) =>
@@ -292,6 +402,16 @@ export default class Simplex2Phases {
               this.matrix[y].values[x] = this.matrix[y].values[x] + (r.value*this.matrix[y].values[v.out])
             });
         });
+    }
+
+    private is_sol_max()
+    {
+        for (let element of this.cj_zj)
+        {
+          if(element > 0)
+            return false;
+        }
+        return true;
     }
 
     private is_sol_min()

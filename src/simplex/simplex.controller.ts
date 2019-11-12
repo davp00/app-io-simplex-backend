@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import SimplexMethod, { SimplexDataApi } from './simplex.class';
+import { SimplexDataApi } from './simplex.class';
+import Simplex2Phases from './simplexthophases.class';
 
 
 
@@ -8,7 +9,7 @@ export class SimplexController {
 
   @Post()
   simplexMethod(@Body() data: SimplexDataApi) {
-      const simplex = new SimplexMethod(data);
+      const simplex = new Simplex2Phases(data);
 
       return simplex.result();
   }
