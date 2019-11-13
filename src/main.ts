@@ -3,10 +3,12 @@ import { AppModule } from './app.module';
 import SimplexMethod, { SimplexRestriction } from './simplex/simplex.class';
 import Simplex2Phases from './simplex/simplexthophases.class';
 
+const port = process.env.PORT ||  3001;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  await app.listen(process.env.PORT ||  3001);
+  await app.listen(port);
 }
 
 /*const cj: number[] = [ 2,3 ];
