@@ -39,14 +39,21 @@ export default class Simplex2Phases {
 
         for (let i = 0 ; i < 2 ; i++)
         {
+
             do {
                 this.calculate();
+
                 let v = i === 0 ? this.calculate_in_out_min() : this.calculate_in_out_max();
 
                 process.push({matrix: this.clone(this.matrix), zj: [...this.zj], cj_zj: [...this.cj_zj], vs: [...this.vs], cb: [...this.cb], in_out: v, phase});
 
                 if( ! v )
                   break;
+
+                if (v.out === -1)
+                {
+                  return { process };
+                }
 
                 this.doOne(v);
 
@@ -66,12 +73,18 @@ export default class Simplex2Phases {
 
             if (i === 0)
             {
+                if (! this.isPhaseOneValid())
+                {
+                  return { process };
+                }
                 this.transformToPhase2();
             }
+
           }
+
           const solution = this.getSolution();
 
-        //this.printResult(process, solution);
+
 
           return { process, solution };
     }
@@ -93,6 +106,11 @@ export default class Simplex2Phases {
               if( ! v )
                 break;
 
+              if (v.out === -1)
+              {
+                return { process };
+              }
+
               this.doOne(v);
 
               let reducers = this.calculate_reducers(v.in, v.out);
@@ -111,6 +129,10 @@ export default class Simplex2Phases {
 
             if (i === 0)
             {
+                if (! this.isPhaseOneValid())
+                {
+                  return { process };
+                }
                 this.transformToPhase2();
             }
         }
@@ -304,6 +326,8 @@ export default class Simplex2Phases {
             }
         });
 
+        if (min === undefined)
+          return {out: -1, in : -1};
 
         return { out: v_out, in: v_in };
     }
@@ -314,7 +338,7 @@ export default class Simplex2Phases {
         if (this.data.FO === 'max' && this.is_sol_max())
           return undefined;
 
-        let max:number = 0,min:number = undefined, v_in:number = 0, v_out: number = 33;
+        let max:number = 0,min:number = undefined, v_in:number = 0, v_out: number = -1;
 
         this.cj_zj.forEach((element, i) =>
         {
@@ -337,7 +361,7 @@ export default class Simplex2Phases {
             if(a > 0)
             {
               b_a = b / a;
-              if (!min) min = b_a;
+              if (min === undefined) min = b_a;
             }
 
             if(a > 0 && b_a <= min)
@@ -351,6 +375,12 @@ export default class Simplex2Phases {
             return undefined;
 
         return { out: v_out, in: v_in };
+    }
+
+
+    private isPhaseOneValid(): boolean
+    {
+        return this.zj[0] === 0;
     }
 
 

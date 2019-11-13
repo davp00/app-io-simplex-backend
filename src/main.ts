@@ -6,7 +6,7 @@ import Simplex2Phases from './simplex/simplexthophases.class';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  await app.listen(3000);
+  await app.listen(3001);
 }
 
 /*const cj: number[] = [ 2,3 ];
@@ -70,18 +70,29 @@ const restrictions: SimplexRestriction[] = [
 
 const FO = 'min';*/
 
-/*const cj: number[] = [5 , 8];
+/*const cj: number[] = [60, 35, 20];
 
 const restrictions: SimplexRestriction[] = [
-  { x_n: [6,5], symbol: '<=', equal: 30 },
-  { x_n: [0,1], symbol: '>=', equal: 1 },
-  { x_n: [-1,1], symbol: '<=', equal: 3 },
+  { x_n: [8, 6, 1], symbol: '<=', equal: 48 },
+  { x_n: [4, 2, 1.5], symbol: '<=', equal: 20 },
+  { x_n: [2, 1.5, 0.5], symbol: '<=', equal: 8 },
+  { x_n: [0, 1, 0], symbol: '<=', equal: 5 },
 ];
 
 const FO = 'max';*/
 
+/*const cj: number[] = [36, 30, -3, -4];
 
-/*let simplex: Simplex2Phases = new Simplex2Phases({cj, restrictions, FO});
+const restrictions: SimplexRestriction[] = [
+  { x_n: [1, 1, -1, 0], symbol: '<=', equal: 5 },
+  { x_n: [6,5, 0, -1], symbol: '<=', equal: 10 },
+];
+
+const FO = 'max';
+
+
+
+let simplex: Simplex2Phases = new Simplex2Phases({cj, restrictions, FO});
 
 simplex.result();*/
 bootstrap();
