@@ -11,6 +11,6 @@ export class SimplexController {
   simplexMethod(@Body() data: SimplexDataApi) {
       const simplex = new Simplex2Phases(data);
 
-      return simplex.result();
+      return {...simplex.result(), standard_equation: simplex.standard_equation, cj: data.cj};
   }
 }

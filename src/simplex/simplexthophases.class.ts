@@ -12,6 +12,7 @@ export default class Simplex2Phases {
     n_vars: number;
 
     data: SimplexDataApi;
+    public standard_equation: any;
 
     constructor(data: SimplexDataApi)
     {
@@ -261,7 +262,7 @@ export default class Simplex2Phases {
                     this.cb.push(1);
                   break;
           }
-
+          this.standard_equation = this.clone(this.matrix);
       }
 
       for (let i = 1; i < this.matrix.length; i++)
